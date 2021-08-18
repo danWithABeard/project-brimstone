@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+	align-items: center;
+	background-color: #22A9D5;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	justify-content: center;
+  transition: background-color 300ms linear;
+}
+
+canvas {
+  background-color: #eeeeee;
+  display: block;
+  transition: background-color 300ms linear;
+}
