@@ -1,3 +1,5 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = {
@@ -15,10 +17,24 @@ module.exports = {
         use: [
           { loader: 'babel-loader' },
         ],
-      }
+      },
+      {
+        test: /\.(css)$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
     ]
   },
   optimization: {
     minimizer: [new UglifyJsPlugin()],
-  }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Project Brimstone',
+      template: 'siteTemplate.html'
+    }),
+    new MiniCssExtractPlugin({
+      filename: './css/dev.css',
+      chunkFilename: '[id].css',
+    }),
+  ]
 }

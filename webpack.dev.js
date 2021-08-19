@@ -1,3 +1,6 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
 module.exports = {
   mode: 'development',
   entry: './js/index.js',
@@ -13,7 +16,20 @@ module.exports = {
         use: [
           { loader: 'babel-loader' },
         ],
-      }
+      },
+      {
+        test: /\.(css)$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
     ]
-  }
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Project Brimstone',
+      template: 'siteTemplate.html'
+    }),
+    new MiniCssExtractPlugin({
+      filename: './css/dev.css'
+    })
+  ]
 }
