@@ -1,6 +1,7 @@
 /** Canvas setup */
 import { COLORS, KEY, PLAYER_SIZE, PLAYER_JUMP_SPEED, PLAYER_MOVE_SPEED } from './constants'
 import { LevelOne } from './levels/LevelOne'
+import './css/game.css'
 
 export class Game {
   init() {
@@ -79,6 +80,7 @@ export class Game {
           (playerY + dy + PLAYER_SIZE > geo.y) &&
           (playerY + dy < geo.y + geo.h)
         ) {
+          console.log('DEATH')
           return true
         }
       }
@@ -88,13 +90,13 @@ export class Game {
 
     function exitCollisionDetection() {
       // var exit = currentLevelGeo[e]
-      var exit = LevelOne.e
+      var exit = LevelOne.exit
 
       if (
-        (playerX + dx + PLAYER_SIZE > exit.x) &&
-        (playerX + dx < exit.x + exit.w) &&
-        (playerY + dy + PLAYER_SIZE > exit.y) &&
-        (playerY + dy < exit.y + exit.h)
+        (playerX + PLAYER_SIZE > exit.x) &&
+        (playerX < exit.x + exit.w) &&
+        (playerY + PLAYER_SIZE > exit.y) &&
+        (playerY < exit.y + exit.h)
       ) {
         return true
       }
@@ -151,13 +153,21 @@ export class Game {
     }
 
     function level1() {
-      for (var b = 0; b < LevelOne.geo.length; b++) {
-        var geo = LevelOne.geo[b]
-        ctx.beginPath()
-        ctx.rect(geo.x, geo.y, geo.w, geo.h)
-        ctx.fillStyle = COLORS.LEVEL_COLOR
-        ctx.fill()
-        ctx.closePath()
+      for (var c=0; c < LevelOne.matrix.length; c++) {
+        const column = LevelOne.matrix[c]
+        for (var r=0; r < column.length; r++) {
+          if (LevelOne.matrix[c][r] === 1) {
+            // console.log(`pixel[${r},${c}]`)
+            ctx.beginPath()
+            ctx.rect(r*20, c*20, 20, 20)
+            ctx.fillStyle = COLORS.LEVEL_COLOR
+            // ctx.lineWidth = 1
+            // ctx.strokeStyle = COLORS.OVERLAP_COLOR
+            // ctx.stroke()
+            ctx.fill()
+            ctx.closePath()
+          }
+        }
       }
     }
 
@@ -182,8 +192,11 @@ export class Game {
 
         /** draw exit */
         ctx.beginPath()
-        ctx.rect(LevelOne.e.x, LevelOne.e.y, LevelOne.e.w, LevelOne.e.h)
+        ctx.rect(LevelOne.exit[0], LevelOne.exit[1], 20, 40)
         ctx.fillStyle = COLORS.EXIT_COLOR
+        // ctx.lineWidth = 1
+        // ctx.strokeStyle = COLORS.OVERLAP_COLOR
+        // ctx.stroke()
         ctx.fill()
         ctx.closePath()
       }
