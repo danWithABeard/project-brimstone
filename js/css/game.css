@@ -14,8 +14,27 @@ body {
   transition: background-color 300ms linear;
 }
 
+/* header {
+  background-color: #1296c2;
+  width: 100%;
+} */
+
 canvas {
+  border: 1px dotted pink;
   background-color: #eeeeee;
   display: block;
   transition: background-color 300ms linear;
+}
+
+table {
+  margin: 20px 0 0;
+  background-color: #333;
+  width: 100%;
+}
+
+th,
+td {
+  color: #eeee;
+  padding: 15px 0;
+  text-align: center;
 }

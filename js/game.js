@@ -1,19 +1,29 @@
 /** Canvas setup */
 import { COLORS, KEY, PLAYER_SIZE, PLAYER_JUMP_SPEED, PLAYER_MOVE_SPEED } from './constants'
-import { LevelOne } from './levels/LevelOne'
+import { LevelOne, LevelTwo } from './levels/LevelOne'
 import './css/game.css'
 
 export class Game {
+  constructor() {
+    this.levels = [
+      LevelOne,
+      LevelTwo
+    ]
+
+    this.start = this.start.bind(this)
+    this.debugMode = 0
+  }
+
   init() {
     this.start()
   }
 
   start() {
+    const _this = this
     const canvas = document.getElementById('game')
     const ctx = canvas.getContext('2d')
 
-    let debugMode = 0,
-        ALT_WORLD = 0,
+    let negaWorld = 0,
         leftPressed = 0,
         playerX = 0,
         playerY = 300,
@@ -21,7 +31,8 @@ export class Game {
         dy = 0,
         dt = 0,
         rightPressed = 0,
-        spacePressed = 0
+        spacePressed = 0,
+        currentLevel = 0
 
     document.addEventListener('keydown', keyDownHandler, false)
     document.addEventListener('keyup', keyUpHandler, false)
@@ -32,7 +43,7 @@ export class Game {
     }
 
     function keyDownHandler(e) {
-      if (debugMode) { console.log('key down ', e.code) }
+      if (_this.debugMode) { console.log('key down ', e.code) }
 
       if (e.code === KEY.ARROW_RIGHT) {
         rightPressed = 1
@@ -40,15 +51,15 @@ export class Game {
         leftPressed = 1
       } else if (e.code === KEY.SPACE) {
         spacePressed = 1
-        ALT_WORLD = 1
+        negaWorld = 1
       } else if (e.code === KEY.DEBUG) {
-        console.log('Debug mode is now ', !debugMode)
-        debugMode = !debugMode
+        console.log('Debug mode is now ', !_this.debugMode)
+        _this.debugMode = !_this.debugMode
       }
     }
 
     function keyUpHandler(e) {
-      if (debugMode) { console.log('key up ', e.code) }
+      if (_this.debugMode) { console.log('key up ', e.code) }
 
       if (e.code === KEY.ARROW_RIGHT) {
         rightPressed = 0
@@ -56,47 +67,48 @@ export class Game {
         leftPressed = 0
       } else if (e.code === KEY.SPACE) {
         spacePressed = 0
-        ALT_WORLD = 0
+        negaWorld = 0
       }
     }
 
     function gameDebugger() {
-      if (debugMode) {
+      if (_this.debugMode) {
         ctx.font = '12px Arial'
         ctx.fillStyle = COLORS.OVERLAP_COLOR
-        ctx.fillText('Player: { x:'+playerX+',y:'+playerY+'}',20,32)
+        ctx.fillText('Player: { x:'+playerX/20+',y:'+playerY/20+'}',20,32)
         ctx.fillText('Jump:'+dt,20,52)
+        ctx.fillText('Level'+currentLevel,20,82)
       }
     }
 
-    function levelCollisionDetection() {
-      var currentLevelGeo = ALT_WORLD ? LevelOne.alt : LevelOne.geo
-      for(var c = 0; c < currentLevelGeo.length; c++) {
-        var geo = currentLevelGeo[c]
+    function levelCollisionDetection(dx,dy) {
+      console.log('dx', dx, 'dy', dy)
 
-        if (
-          (playerX + dx + PLAYER_SIZE > geo.x) &&
-          (playerX + dx < geo.x + geo.w) &&
-          (playerY + dy + PLAYER_SIZE > geo.y) &&
-          (playerY + dy < geo.y + geo.h)
-        ) {
-          console.log('DEATH')
-          return true
-        }
-      }
+      // for(var c = 0; c < currentLevelGeo.length; c++) {
+      //   var geo = currentLevelGeo[c]
+
+      //   if (
+      //     (playerX + dx + PLAYER_SIZE > geo.x) &&
+      //     (playerX + dx < geo.x + geo.w) &&
+      //     (playerY + dy + PLAYER_SIZE > geo.y) &&
+      //     (playerY + dy < geo.y + geo.h)
+      //   ) {
+      //     console.log('DEATH')
+      //     return true
+      //   }
+      // }
 
       return false
     }
 
     function exitCollisionDetection() {
-      // var exit = currentLevelGeo[e]
-      var exit = LevelOne.exit
+      var exit = _this.levels[currentLevel].exit
 
       if (
-        (playerX + PLAYER_SIZE > exit.x) &&
-        (playerX < exit.x + exit.w) &&
-        (playerY + PLAYER_SIZE > exit.y) &&
-        (playerY < exit.y + exit.h)
+        (playerX + 20 > exit[0]) &&
+        (playerX < exit[0] + 20) &&
+        (playerY + 20 > exit[1]) &&
+        (playerY < exit[1] + 20)
       ) {
         return true
       }
@@ -132,16 +144,20 @@ export class Game {
         dy += (PLAYER_JUMP_SPEED)
       }
 
-      var cc = levelCollisionDetection()
+      var cc = levelCollisionDetection(dx,dy)
       if (dx !== 0 && !cc) playerX += dx
       if (dy !== 0 && !cc) playerY += dy
     }
 
     /** Run the end game state */
-    function gameOver() {
+    function nextLevel() {
+      console.log('nextLevel nextLevel nextLevel')
+      /** Refactor into level start function */
+      playerX = 0
+      playerY = 300
       clearCanvas()
-      alert("Load Level 2")
-      document.location.reload()
+      currentLevel += 1
+      draw()
     }
 
     function drawPlayer() {
@@ -152,53 +168,53 @@ export class Game {
       ctx.closePath()
     }
 
-    function level1() {
-      for (var c=0; c < LevelOne.matrix.length; c++) {
-        const column = LevelOne.matrix[c]
+    function drawLevel() {
+      setBackgroundColor(negaWorld ? COLORS.ALT_LEVEL_COLOR : null)
+
+      let levelGeometry, levelColor
+
+      if (negaWorld) {
+        /** Render alt level */
+        levelGeometry = _this.levels[currentLevel].nega
+        levelColor = COLORS.ALT_LEVEL_COLOR
+      } else {
+        levelGeometry = _this.levels[currentLevel].matrix
+        levelColor = COLORS.LEVEL_COLOR
+      }
+
+      for (var c=0; c < levelGeometry.length; c++) {
+        const column = levelGeometry[c]
         for (var r=0; r < column.length; r++) {
-          if (LevelOne.matrix[c][r] === 1) {
-            // console.log(`pixel[${r},${c}]`)
+          if (levelGeometry[c][r] === 1) {
             ctx.beginPath()
             ctx.rect(r*20, c*20, 20, 20)
-            ctx.fillStyle = COLORS.LEVEL_COLOR
-            // ctx.lineWidth = 1
-            // ctx.strokeStyle = COLORS.OVERLAP_COLOR
-            // ctx.stroke()
+            ctx.fillStyle = levelColor
+            ctx.fill()
+
+            if (_this.debugMode) {
+              // console.log(`pixel[${r},${c}]`)
+              ctx.lineWidth = 1
+              ctx.strokeStyle = COLORS.OVERLAP_COLOR
+              ctx.stroke()
+            }
+
+            ctx.closePath()
+          } else if (levelGeometry[c][r] === 9) {
+            ctx.beginPath()
+            ctx.rect(r*20, c*20, 20, 20)
+            ctx.fillStyle = COLORS.EXIT_COLOR
             ctx.fill()
             ctx.closePath()
+          } else if (_this.debugMode && levelGeometry[c][r] === 0) {
+              // console.log(`pixel[${r},${c}]`)
+              ctx.beginPath()
+              ctx.rect(r*20, c*20, 20, 20)
+              ctx.lineWidth = .1
+              ctx.strokeStyle = COLORS.EXIT_COLOR
+              ctx.stroke()
+              ctx.closePath()
           }
         }
-      }
-    }
-
-    function nega1() {
-      for (var b = 0; b < LevelOne.alt.length; b++) {
-        var alt = LevelOne.alt[b]
-        ctx.beginPath()
-        ctx.rect(alt.x, alt.y, alt.w, alt.h)
-        ctx.fillStyle = COLORS.ALT_LEVEL_COLOR
-        ctx.fill()
-        ctx.closePath()
-      }
-    }
-
-    function drawLevel() {
-      setBackgroundColor(ALT_WORLD ? COLORS.ALT_LEVEL_COLOR : null)
-
-      if (ALT_WORLD) {
-        nega1() /** Render alt level */
-      } else {
-        level1() /** render main level */
-
-        /** draw exit */
-        ctx.beginPath()
-        ctx.rect(LevelOne.exit[0], LevelOne.exit[1], 20, 40)
-        ctx.fillStyle = COLORS.EXIT_COLOR
-        // ctx.lineWidth = 1
-        // ctx.strokeStyle = COLORS.OVERLAP_COLOR
-        // ctx.stroke()
-        ctx.fill()
-        ctx.closePath()
       }
     }
 
@@ -214,7 +230,7 @@ export class Game {
       canvasCollisionDetection()
 
       if (exitCollisionDetection()) {
-        gameOver()
+        nextLevel()
       } else {
         requestAnimationFrame(draw)
       }
